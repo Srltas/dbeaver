@@ -63,9 +63,9 @@ public class CubridTrigger extends GenericTableTrigger {
             @NotNull JDBCResultSet dbResult) {
         super(table, name, description);
         this.container = (CubridUser) container;
-        this.owner = JDBCUtils.safeGetString(dbResult, "owner.name");
+        this.owner = JDBCUtils.safeGetString(dbResult, "owner_name");
         this.active = JDBCUtils.safeGetInteger(dbResult, "status").equals(2);
-        this.targetColumn = JDBCUtils.safeGetString(dbResult, "target_attribute");
+        this.targetColumn = JDBCUtils.safeGetString(dbResult, "target_attr_name");
         this.priority = JDBCUtils.safeGetDouble(dbResult, "priority");
         this.event = events.get(JDBCUtils.safeGetInteger(dbResult, "event"));
         this.condition = JDBCUtils.safeGetString(dbResult, "condition");

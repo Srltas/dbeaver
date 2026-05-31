@@ -43,13 +43,13 @@ public class CubridPrivilage implements DBSObject
         if (dbResult != null) {
             persisted = true;
             description = JDBCUtils.safeGetString(dbResult, "comment");
-            String sql = "select t.groups.name from db_user join table(groups) as t(groups) where name = ?";
+            String sql = "select t.groups from db_user join table(groups) as t(groups) where name = ?";
             sql = container.wrapShardQuery(sql);
             try (JDBCPreparedStatement dbStat = dbResult.getSession().prepareStatement(sql)) {
                 dbStat.setString(1, name);
                 try (JDBCResultSet result = dbStat.executeQuery()) {
                     while (result.next()) {
-                        groups.add(JDBCUtils.safeGetString(result, "groups.name"));
+                        groups.add(JDBCUtils.safeGetString(result, "groups"));
                     }
 
                 }

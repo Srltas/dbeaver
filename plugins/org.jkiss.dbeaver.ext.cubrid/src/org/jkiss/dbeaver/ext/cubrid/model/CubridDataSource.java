@@ -206,13 +206,13 @@ public class CubridDataSource extends GenericDataSource
     public void loadPrivilege(@NotNull DBRProgressMonitor monitor) throws DBException {
         privilegeGroups = new ArrayList<>();
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Load privilege Group")) {
-            String query = wrapShardQuery("select db_user.name, user_group.name from db_user, table(groups) as groups_tb(user_group) where db_user.name = ?");
+            String query = wrapShardQuery("select db_user.name, user_group from db_user, table(groups) as groups_tb(user_group) where db_user.name = ?");
             try (JDBCPreparedStatement dbStat = session.prepareStatement(query)) {
                 String currentUser = getCurrentUser();
                 dbStat.setString(1, currentUser);
                 try (JDBCResultSet dbResult = dbStat.executeQuery()) {
                     while (dbResult.next()) {
-                        String groups = JDBCUtils.safeGetString(dbResult, "user_group.name");
+                        String groups = JDBCUtils.safeGetString(dbResult, "user_group");
                         privilegeGroups.add(groups);
                     }
                 }
