@@ -55,6 +55,7 @@ public class CubridDataSource extends GenericDataSource
     private final CubridPrivilageCache privilageCache;
     private final CubridServerCache serverCache;
     private boolean supportMultiSchema;
+    private boolean supportReorganizedCatalog;
     private boolean supportDbmsOutputPlCsql = false;
     private boolean isEOLVersion;
     private ArrayList<CubridCharset> charsets;
@@ -206,7 +207,8 @@ public class CubridDataSource extends GenericDataSource
     public void loadPrivilege(@NotNull DBRProgressMonitor monitor) throws DBException {
         privilegeGroups = new ArrayList<>();
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Load privilege Group")) {
-            String query = wrapShardQuery("select db_user.name, user_group from db_user, table(groups) as groups_tb(user_group) where db_user.name = ?");
+            String groupExpr = getSupportReorganizedCatalog() ? "user_group" : "user_group.name as user_group";
+            String query = wrapShardQuery("select db_user.name, " + groupExpr + " from db_user, table(groups) as groups_tb(user_group) where db_user.name = ?");
             try (JDBCPreparedStatement dbStat = session.prepareStatement(query)) {
                 String currentUser = getCurrentUser();
                 dbStat.setString(1, currentUser);
@@ -305,6 +307,14 @@ public class CubridDataSource extends GenericDataSource
 
     public void setSupportMultiSchema(@NotNull boolean supportMultiSchema) {
         this.supportMultiSchema = supportMultiSchema;
+    }
+
+    public boolean getSupportReorganizedCatalog() {
+        return this.supportReorganizedCatalog;
+    }
+
+    public void setSupportReorganizedCatalog(@NotNull boolean supportReorganizedCatalog) {
+        this.supportReorganizedCatalog = supportReorganizedCatalog;
     }
 
     @NotNull

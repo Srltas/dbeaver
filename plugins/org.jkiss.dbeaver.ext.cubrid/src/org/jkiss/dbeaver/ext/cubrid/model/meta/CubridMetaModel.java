@@ -97,10 +97,12 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
             @Nullable GenericTableBase object,
             @Nullable String objectName)
             throws SQLException {
+        boolean reorganizedCatalog = ((CubridDataSource) owner.getDataSource()).getSupportReorganizedCatalog();
+        String serialOwner = reorganizedCatalog ? "owner" : "owner.name";
         String sql = "select a.*,a.class_name as TABLE_NAME, case when class_type = 'CLASS' then 'TABLE'\r\n"
                 + " when class_type = 'VCLASS' then 'VIEW' end as TABLE_TYPE,\r\n"
                 + " a.comment as REMARKS, b.current_val from db_class a LEFT JOIN\r\n"
-                + " (select class_name, current_val from db_serial where owner = ?\r\n"
+                + " (select class_name, current_val from db_serial where " + serialOwner + " = ?\r\n"
                 + " group by class_name) b on a.class_name = b.class_name\r\n"
                 + " left join db_partition p on a.class_name = p.partition_class_name\r\n"
                 + " where a.owner_name = ? and p.partition_class_name is null";
@@ -253,7 +255,8 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
             @NotNull JDBCSession session,
             @NotNull GenericStructContainer container)
             throws SQLException {
-        String sql = "select * from db_serial where owner = ?";
+        boolean reorganizedCatalog = ((CubridDataSource) container.getDataSource()).getSupportReorganizedCatalog();
+        String sql = "select * from db_serial where " + (reorganizedCatalog ? "owner" : "owner.name") + " = ?";
         sql = ((CubridDataSource) container.getDataSource()).wrapShardQuery(sql);
         final JDBCPreparedStatement dbStat = session.prepareStatement(sql);
         dbStat.setString(1, container.getName());
@@ -315,8 +318,11 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
             @NotNull GenericStructContainer container,
             @Nullable GenericTableBase table)
             throws SQLException {
+        boolean reorganizedCatalog = ((CubridDataSource) container.getDataSource()).getSupportReorganizedCatalog();
+        String vclass = reorganizedCatalog ? "db_trigger" : "db_trig";
+        String triggerClass = reorganizedCatalog ? "_db_trigger" : "db_trigger";
         String sql = "select v.*, t.status, t.priority, t.event, t.[condition], t.action_definition "
-                + "from db_trigger v, _db_trigger t "
+                + "from " + vclass + " v, " + triggerClass + " t "
                 + "where v.trigger_name = t.name and v.owner_name = t.owner.name "
                 + "and v.target_owner_name = ? and v.target_class_name = ?";
         sql = ((CubridDataSource) container.getDataSource()).wrapShardQuery(sql);
@@ -346,8 +352,11 @@ public class CubridMetaModel extends GenericMetaModel implements DBCQueryTransfo
             @NotNull JDBCSession session,
             @NotNull GenericStructContainer container)
             throws SQLException {
+        boolean reorganizedCatalog = ((CubridDataSource) container.getDataSource()).getSupportReorganizedCatalog();
+        String vclass = reorganizedCatalog ? "db_trigger" : "db_trig";
+        String triggerClass = reorganizedCatalog ? "_db_trigger" : "db_trigger";
         String sql = "select v.*, t.status, t.priority, t.event, t.[condition], t.action_definition "
-                + "from db_trigger v, _db_trigger t "
+                + "from " + vclass + " v, " + triggerClass + " t "
                 + "where v.trigger_name = t.name and v.owner_name = t.owner.name "
                 + "and v.owner_name = ?";
         sql = ((CubridDataSource) container.getDataSource()).wrapShardQuery(sql);
